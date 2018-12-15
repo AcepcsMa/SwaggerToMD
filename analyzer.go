@@ -42,9 +42,21 @@ func (analyzer *SwaggerAnalyzer) SetLang(lang LanguageType) error {
 
 func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 	if analyzer.generator == nil {
-		analyzer.generator = &MdGenerator{}
+		analyzer.generator = NewMdGenerator()
 	}
-	return "", nil
+
+	model := Model{}
+	json.Unmarshal([]byte(jsonInput), &model)
+	overviewContent, overviewErr := analyzer.AnalyzeOverview(model)
+	if overviewErr != nil {
+		return "", overviewErr
+	}
+	pathsContent, pathsErr := analyzer.AnalyzePaths(model)
+	if pathsErr != nil {
+		return "", pathsErr
+	}
+
+	return overviewContent + pathsContent, nil
 }
 
 func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, error) {
@@ -88,16 +100,21 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, er
 	overviewContent = append(overviewContent, producesHeader)
 	overviewContent = append(overviewContent, produces...)
 
-	// remove empty & useless lines
-	finalOverviewContent := ""
-	for _, line := range overviewContent {
-		if len(line) > 0 {
-			finalOverviewContent += fmt.Sprintf("%s\n", line)
-		}
-	}
+	finalOverviewContent := analyzer.compact(overviewContent)
 
 	analyzer.content["overview"] = finalOverviewContent
 	return analyzer.content["overview"], nil
+}
+
+// compact means removing empty & useless line contents
+func (analyzer *SwaggerAnalyzer) compact(content []string) string {
+	compactedContent := ""
+	for _, line := range content {
+		if len(line) > 0 {
+			compactedContent += fmt.Sprintf("%s\n", line)
+		}
+	}
+	return compactedContent
 }
 
 func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error) {
