@@ -6,6 +6,7 @@ type Transformer struct {
 	Input       string
 	Output      string
 	ContentFrom ContentSource
+	LangType 	LanguageType
 	JsonContent string
 	MdContent   string
 
@@ -28,7 +29,7 @@ func (t *Transformer) GetContent() error {
 
 func (t *Transformer) Analyze() error {
 	if t.analyzer == nil {
-		t.analyzer = NewSwaggerAnalyzer()
+		t.analyzer = NewSwaggerAnalyzer(ENGLISH)
 	}
 
 	if len(t.JsonContent) == 0 {
@@ -47,9 +48,9 @@ func (t *Transformer) WriteToOutput() {
 
 }
 
-func NewTransformer(input string, output string, contentSource ContentSource) *Transformer {
-	transformer := &Transformer{Input:input, Output:output}
+func NewTransformer(input string, output string, contentSource ContentSource, langType LanguageType) *Transformer {
+	transformer := &Transformer{Input:input, Output:output, LangType:langType}
 	transformer.contentGetter = NewSwaggerContentGetter(input, contentSource)
-	transformer.analyzer = NewSwaggerAnalyzer()
+	transformer.analyzer = NewSwaggerAnalyzer(langType)
 	return transformer
 }

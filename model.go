@@ -14,7 +14,7 @@ type Model struct {
 	}
 
 	Produces []string `json:"produces"`
-	Comsumes []string `json:"comsumes"`
+	Consumes []string `json:"consumes"`
 	Tags []struct {
 		Name string `json:"name"`
 		Description string `json:"description"`

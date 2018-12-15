@@ -38,7 +38,7 @@ func main() {
 
 	fmt.Printf("%v", model.Info.Title)
 
-	markdownWriter := &MdGenerator{FileName: output}
-	markdownWriter.WriteHeader(model.Info.Title, H2)
-	markdownWriter.Close()
+	//markdownWriter := &MdGenerator{FileName: output}
+	//markdownWriter.WriteHeader(model.Info.Title, H2)
+	//markdownWriter.Close()
 }
