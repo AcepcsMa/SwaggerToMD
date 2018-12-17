@@ -23,6 +23,22 @@ type SwaggerAnalyzer struct {
 	generator *MdGenerator		// markdown format generator
 }
 
+type Parameter struct {
+	Description string
+	Name string
+	Type string
+	In string
+}
+
+type Api struct {
+	Path string
+	Method string
+	Response map[string]string
+	OperationId string
+	Parameters []Parameter
+	Tags []string
+}
+
 // set language of the SwaggerAnalyzer
 func (analyzer *SwaggerAnalyzer) SetLang(lang LanguageType) error {
 	configFile := ""
@@ -113,7 +129,57 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, er
 
 // analyze the paths part
 func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error) {
-	return "", nil
+	pathsContent := make([]string, 0)
+	pathsJson := swaggerModel.Paths
+
+	pathsHeader := analyzer.generator.GetHeader("Paths", H2)
+	pathsContent = append(pathsContent, pathsHeader)
+
+	for apiPath, methods := range pathsJson {
+		apis := analyzer.ExtractAPIs(apiPath, methods.(map[string]interface{}))
+		for _, api := range apis {
+			apiInMd := analyzer.FormatAPI(api)
+			pathsContent = append(pathsContent, apiInMd)
+		}
+	}
+
+	finalPathsContent := analyzer.compact(pathsContent)
+	return finalPathsContent, nil
+}
+
+func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
+	return ""
+}
+
+// extract APIs from a given method formatted in Json
+func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]interface{}) []Api {
+	apis := make([]Api, 4)
+
+	for methodName, value := range methods {
+		currentApi := Api{}
+		currentApi.Path = apiPath
+		currentApi.Method = methodName
+		responses := value.(map[string]interface{})["responses"]
+		for statusCode, returnInfo := range responses.(map[string]map[string]string) {
+			currentApi.Response[statusCode] = returnInfo["description"]
+		}
+		currentApi.OperationId = value.(map[string]interface{})["operationId"].(string)
+
+		parameters := value.(map[string]interface{})["parameters"]
+		for _, parameter := range parameters.([]map[string]string) {
+			currentParameter := Parameter{
+				Description: parameter["description"],
+				Name: parameter["name"],
+				Type: parameter["type"],
+				In: parameter["in"]}
+			currentApi.Parameters = append(currentApi.Parameters, currentParameter)
+		}
+
+		tags := value.(map[string]interface{})["tags"].([]string)
+		currentApi.Tags = append(currentApi.Tags, tags...)
+		apis = append(apis, currentApi)
+	}
+	return apis
 }
 
 // compact means removing empty & useless line contents
