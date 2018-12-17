@@ -18,11 +18,12 @@ type Analyzer interface {
 }
 
 type SwaggerAnalyzer struct {
-	content map[string]string
-	terms map[string]string
-	generator *MdGenerator
+	content map[string]string	// content
+	terms map[string]string		// terms associated with language settings
+	generator *MdGenerator		// markdown format generator
 }
 
+// set language of the SwaggerAnalyzer
 func (analyzer *SwaggerAnalyzer) SetLang(lang LanguageType) error {
 	configFile := ""
 	if lang == CHINESE {
@@ -40,6 +41,7 @@ func (analyzer *SwaggerAnalyzer) SetLang(lang LanguageType) error {
 	return nil
 }
 
+// the main entrance of analysis
 func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 	if analyzer.generator == nil {
 		analyzer.generator = NewMdGenerator()
@@ -59,6 +61,7 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 	return overviewContent + pathsContent, nil
 }
 
+// analyze the overview part
 func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, error) {
 
 	overviewContent := make([]string, 0)
@@ -87,7 +90,8 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, er
 	consumesHeader := analyzer.generator.GetHeader(analyzer.terms["consumes"], H4)
 	consumes := make([]string, len(swaggerModel.Consumes))
 	for _, consume := range swaggerModel.Consumes {
-		consumes = append(consumes, analyzer.generator.GetListItem(consume, INDENT_0))
+		codeConsume := analyzer.generator.GetSingleLineCode(consume)
+		consumes = append(consumes, analyzer.generator.GetListItem(codeConsume, INDENT_0))
 	}
 	overviewContent = append(overviewContent, consumesHeader)
 	overviewContent = append(overviewContent, consumes...)
@@ -95,7 +99,8 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, er
 	producesHeader := analyzer.generator.GetHeader(analyzer.terms["produces"], H4)
 	produces := make([]string, len(swaggerModel.Produces))
 	for _, produce := range swaggerModel.Produces {
-		produces = append(produces, analyzer.generator.GetListItem(produce, INDENT_0))
+		codeProduce := analyzer.generator.GetSingleLineCode(produce)
+		produces = append(produces, analyzer.generator.GetListItem(codeProduce, INDENT_0))
 	}
 	overviewContent = append(overviewContent, producesHeader)
 	overviewContent = append(overviewContent, produces...)
@@ -104,6 +109,11 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, er
 
 	analyzer.content["overview"] = finalOverviewContent
 	return analyzer.content["overview"], nil
+}
+
+// analyze the paths part
+func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error) {
+	return "", nil
 }
 
 // compact means removing empty & useless line contents
@@ -117,10 +127,7 @@ func (analyzer *SwaggerAnalyzer) compact(content []string) string {
 	return compactedContent
 }
 
-func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error) {
-	return "", nil
-}
-
+// factory for SwaggerAnalyzer
 func NewSwaggerAnalyzer(lang LanguageType) *SwaggerAnalyzer {
 	analyzer := &SwaggerAnalyzer{}
 	analyzer.content = make(map[string]string)

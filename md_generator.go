@@ -24,18 +24,31 @@ type MdGenerator struct {
 
 }
 
+// generate a header in markdown
 func (generator *MdGenerator) GetHeader(content string, level HeaderLevel) string {
 	sharps := strings.Repeat("#", int(level))
 	headerContent := fmt.Sprintf("%s %s", sharps, content)
 	return headerContent
 }
 
+// generate a list item in markdown
 func (generator *MdGenerator) GetListItem(content string, level IndentLevel) string {
 	indent := strings.Repeat(" ", int(level) * 4)
 	listItemContent := fmt.Sprintf("%s+ %s", indent, content)
 	return listItemContent
 }
 
+// generate a single line of code in markdown
+func (generator *MdGenerator) GetSingleLineCode(content string) string {
+	return fmt.Sprintf("`%s`", content)
+}
+
+// generate multiple lines of code in markdown
+func (generator *MdGenerator) GetMultiLineCode(content string) string {
+	return fmt.Sprintf("```\n%s\n```", content)
+}
+
+// factory for MdGenerator
 func NewMdGenerator() *MdGenerator {
 	return &MdGenerator{}
 }
