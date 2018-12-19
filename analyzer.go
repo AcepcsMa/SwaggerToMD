@@ -13,6 +13,9 @@ const (
 	ENGLISH LanguageType = 1
 )
 
+var parameterTableHeader = []string{"Type", "Name", "Description", "Schema"}
+var responseTableHeader = []string{"HTTP Code", "Description", "Schema"}
+
 type Analyzer interface {
 	Analyze(string) (string, error)
 }
@@ -132,7 +135,46 @@ func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error
 }
 
 func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
-	return ""
+	apiContent := ""
+	boldDescription := analyzer.generator.GetBoldLine(api.OperationId)
+	description := analyzer.generator.GetItalicLine(boldDescription)
+	apiContent += fmt.Sprintf("%s\n", description)
+
+	codePath := analyzer.generator.GetMultiLineCode(api.Path)
+	apiContent += fmt.Sprintf("%s\n", codePath)
+
+	parameterHeader := analyzer.generator.GetHeader("Parameters", H4)
+	pTableLines := make([]TableLine, len(api.Parameters))
+	for _, parameter := range api.Parameters {
+		currentLine := TableLine{}
+		currentLine.Set("Type", parameter.In)
+		currentLine.Set("Name", parameter.Name)
+		currentLine.Set("Description", parameter.Description)
+		currentLine.Set("Schema", parameter.Type)
+		pTableLines = append(pTableLines, currentLine)
+	}
+	parameterTable := analyzer.generator.GetTable(parameterTableHeader, pTableLines)
+	apiContent += fmt.Sprintf("%s\n%s\n", parameterHeader, parameterTable)
+
+	responseHeader := analyzer.generator.GetHeader("Responses", H4)
+	rTableLines := make([]TableLine, len(api.Response))
+	for key, value := range api.Response {
+		currentLine := TableLine{}
+		currentLine.Set("HTTP Code", key)
+		currentLine.Set("Description", value)
+		rTableLines = append(rTableLines, currentLine)
+	}
+	responseTable := analyzer.generator.GetTable(responseTableHeader, rTableLines)
+	apiContent += fmt.Sprintf("%s\n%s\n", responseHeader, responseTable)
+
+	TagHeader := analyzer.generator.GetHeader("Tags", H4)
+	apiContent += fmt.Sprintf("%s\n", TagHeader)
+	for _, tag := range api.Tags {
+		currentListItem := analyzer.generator.GetListItem(tag, INDENT_0)
+		apiContent += fmt.Sprintf("%s\n", currentListItem)
+	}
+
+	return apiContent
 }
 
 // extract APIs from a given method formatted in Json
