@@ -31,6 +31,7 @@ func TestSwaggerAnalyzer_AnalyzeOverview(t *testing.T) {
 	}
 }
 
+// test ExtractAPIs in SwaggerAnalyzer
 func TestSwaggerAnalyzer_ExtractAPIs(t *testing.T) {
 	t.Log("Test swagger analyzer - ExtractAPIs")
 	{

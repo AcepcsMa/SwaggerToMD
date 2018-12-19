@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"strings"
 )
@@ -18,10 +19,24 @@ const (
 	INDENT_0 IndentLevel = 0
 	INDENT_1 IndentLevel = 1
 	INDENT_2 IndentLevel = 2
+
+	NO_CONTENT = "No Content"
 )
 
 type MdGenerator struct {
 
+}
+
+type TableLine struct {
+	Content map[string]string
+}
+
+func (line TableLine) Get(header string) string {
+	if content, ok := line.Content[header]; ok {
+		return content
+	} else {
+		return NO_CONTENT
+	}
 }
 
 // generate a header in markdown
@@ -46,6 +61,37 @@ func (generator *MdGenerator) GetSingleLineCode(content string) string {
 // generate multiple lines of code in markdown
 func (generator *MdGenerator) GetMultiLineCode(content string) string {
 	return fmt.Sprintf("```\n%s\n```", content)
+}
+
+func (generator *MdGenerator) GetBoldLine(content string) string {
+	return fmt.Sprintf("**%s**", content)
+}
+
+func (generator *MdGenerator) GetItalicLine(content string) string {
+	return fmt.Sprintf("*%s*", content)
+}
+
+func (generator *MdGenerator) GetTable(header []string, lines []TableLine) string {
+	headerLine := ""
+	headerSepLine := ""
+	for _, colHeader := range header {
+		headerLine += fmt.Sprintf("|%s", colHeader)
+		headerSepLine += "|---"
+	}
+	headerSepLine += "|"
+	headerLine += fmt.Sprintf("|\n%s", headerSepLine)
+
+	lineContents := list.New()
+	for _, line := range lines {
+		currentLine := ""
+		for _, colHeader := range header {
+			currentLine += fmt.Sprintf("|%s", line.Get(colHeader))
+		}
+		currentLine += "|"
+		lineContents.PushBack(currentLine)
+	}
+
+	return ""
 }
 
 // factory for MdGenerator
