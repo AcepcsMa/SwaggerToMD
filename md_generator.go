@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/list"
 	"fmt"
 	"strings"
 )
@@ -31,12 +30,16 @@ type TableLine struct {
 	Content map[string]string
 }
 
-func (line TableLine) Get(header string) string {
+func (line *TableLine) Get(header string) string {
 	if content, ok := line.Content[header]; ok {
 		return content
 	} else {
 		return NO_CONTENT
 	}
+}
+
+func (line *TableLine) Set(key string, value string) {
+	line.Content[key] = value
 }
 
 // generate a header in markdown
@@ -71,6 +74,19 @@ func (generator *MdGenerator) GetItalicLine(content string) string {
 	return fmt.Sprintf("*%s*", content)
 }
 
+func (generator *MdGenerator) getTableLine(header []string, terms []string) TableLine {
+	if len(header) != len(terms) {
+		return TableLine{}
+	}
+
+	line := TableLine{}
+	termCount := len(terms)
+	for i := 0;i < termCount;i++ {
+		line.Set(header[i], terms[i])
+	}
+	return line
+}
+
 func (generator *MdGenerator) GetTable(header []string, lines []TableLine) string {
 	headerLine := ""
 	headerSepLine := ""
@@ -81,17 +97,17 @@ func (generator *MdGenerator) GetTable(header []string, lines []TableLine) strin
 	headerSepLine += "|"
 	headerLine += fmt.Sprintf("|\n%s", headerSepLine)
 
-	lineContents := list.New()
+	lineContents := ""
 	for _, line := range lines {
 		currentLine := ""
 		for _, colHeader := range header {
 			currentLine += fmt.Sprintf("|%s", line.Get(colHeader))
 		}
-		currentLine += "|"
-		lineContents.PushBack(currentLine)
+		currentLine += "|\n"
+		lineContents += currentLine
 	}
 
-	return ""
+	return headerLine + lineContents
 }
 
 // factory for MdGenerator
