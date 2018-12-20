@@ -95,7 +95,7 @@ func (generator *MdGenerator) GetTable(header []string, lines []TableLine) strin
 		headerSepLine += "|---"
 	}
 	headerSepLine += "|"
-	headerLine += fmt.Sprintf("|\n%s", headerSepLine)
+	headerLine += fmt.Sprintf("|\n%s\n", headerSepLine)
 
 	lineContents := ""
 	for _, line := range lines {

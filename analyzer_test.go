@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -79,6 +81,37 @@ func TestSwaggerAnalyzer_FormatAPI(t *testing.T) {
 				{
 					fmt.Println(analyzer.FormatAPI(api))
 				}
+			}
+		}
+	}
+}
+
+// test Analyze in SwaggerAnalyzer
+func TestSwaggerAnalyzer_Analyze(t *testing.T) {
+	t.Log("Test swagger analyzer - Analyze")
+	{
+		t.Log("Read json from swagger test file")
+		{
+			jsonString, readErr := ioutil.ReadFile("test.json")
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			t.Log("Analyze")
+			{
+				analyzer := NewSwaggerAnalyzer(ENGLISH)
+				result, analyzeErr := analyzer.Analyze(string(jsonString))
+				if analyzeErr != nil {
+					t.Fatal(analyzeErr)
+				}
+				//fmt.Println(result)
+				resultFile, resultFileErr := os.OpenFile("test.md", os.O_RDWR | os.O_CREATE, 0755)
+				defer resultFile.Close()
+				if resultFileErr != nil {
+					t.Fatal(resultFileErr)
+				}
+				resultWriter := bufio.NewWriter(resultFile)
+				resultWriter.WriteString(result)
+				resultWriter.Flush()
 			}
 		}
 	}

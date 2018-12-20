@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 type LanguageType int
@@ -53,6 +54,7 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 
 	model := Model{}
 	json.Unmarshal([]byte(jsonInput), &model)
+	title := analyzer.generator.GetHeader(model.Info.Title, H1)
 	overviewContent, overviewErr := analyzer.AnalyzeOverview(model)
 	if overviewErr != nil {
 		return "", overviewErr
@@ -62,7 +64,7 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 		return "", pathsErr
 	}
 
-	return overviewContent + pathsContent, nil
+	return fmt.Sprintf("%s\n%s\n%s", title, overviewContent, pathsContent), nil
 }
 
 // analyze the overview part
@@ -71,36 +73,43 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, er
 	overviewContent := make([]string, 0)
 
 	overviewHeader := analyzer.generator.GetHeader(analyzer.terms["overview"], H2)
-	overview := swaggerModel.Info.Description
+	overview := swaggerModel.Info.Description + "\n"
 	overviewContent = append(overviewContent, overviewHeader, overview)
 
-	versionHeader := analyzer.generator.GetHeader(analyzer.terms["version_info"], H4)
-	version := fmt.Sprintf("Version: %s", swaggerModel.Info.Version)
+	versionHeader := analyzer.generator.GetHeader(analyzer.terms["version_info"], H3)
+	version := fmt.Sprintf("Version: %s\n", swaggerModel.Info.Version)
 	overviewContent = append(overviewContent, versionHeader, version)
 
-	uriHeader := analyzer.generator.GetHeader(analyzer.terms["uri_scheme"], H4)
-	basePath := fmt.Sprintf("BasePath: %s", swaggerModel.BasePath)
+	uriHeader := analyzer.generator.GetHeader(analyzer.terms["uri_scheme"], H3)
+	basePath := fmt.Sprintf("BasePath: %s\n", swaggerModel.BasePath)
 	overviewContent = append(overviewContent, uriHeader, basePath)
 
 	tags := make([]string, len(swaggerModel.Tags))
-	tagsHeader := analyzer.generator.GetHeader(analyzer.terms["tags"], H4)
-	for _, tag := range swaggerModel.Tags {
-		listItemContent := fmt.Sprintf("%s : %s", tag.Name, tag.Description)
+	tagsHeader := analyzer.generator.GetHeader(analyzer.terms["tags"], H3)
+	for index, tag := range swaggerModel.Tags {
+		format := "%s : %s"
+		if index == len(swaggerModel.Tags) - 1 {
+			format += "\n"
+		}
+		listItemContent := fmt.Sprintf(format, tag.Name, tag.Description)
 		tags = append(tags, analyzer.generator.GetListItem(listItemContent, INDENT_0))
 	}
 	overviewContent = append(overviewContent, tagsHeader)
 	overviewContent = append(overviewContent, tags...)
 
-	consumesHeader := analyzer.generator.GetHeader(analyzer.terms["consumes"], H4)
+	consumesHeader := analyzer.generator.GetHeader(analyzer.terms["consumes"], H3)
 	consumes := make([]string, len(swaggerModel.Consumes))
-	for _, consume := range swaggerModel.Consumes {
+	for index, consume := range swaggerModel.Consumes {
 		codeConsume := analyzer.generator.GetSingleLineCode(consume)
+		if index == len(swaggerModel.Consumes) - 1 {
+			codeConsume += "\n"
+		}
 		consumes = append(consumes, analyzer.generator.GetListItem(codeConsume, INDENT_0))
 	}
 	overviewContent = append(overviewContent, consumesHeader)
 	overviewContent = append(overviewContent, consumes...)
 
-	producesHeader := analyzer.generator.GetHeader(analyzer.terms["produces"], H4)
+	producesHeader := analyzer.generator.GetHeader(analyzer.terms["produces"], H3)
 	produces := make([]string, len(swaggerModel.Produces))
 	for _, produce := range swaggerModel.Produces {
 		codeProduce := analyzer.generator.GetSingleLineCode(produce)
@@ -141,32 +150,37 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
 	description := analyzer.generator.GetItalicLine(boldDescription)
 	apiContent += fmt.Sprintf("%s\n", description)
 
-	codePath := analyzer.generator.GetMultiLineCode(api.Path)
+	codePath := analyzer.generator.GetMultiLineCode(fmt.Sprintf("%s %s",
+		strings.ToUpper(api.Method), api.Path))
 	apiContent += fmt.Sprintf("%s\n", codePath)
 
-	parameterHeader := analyzer.generator.GetHeader("Parameters", H4)
-	pTableLines := make([]TableLine, len(api.Parameters))
-	for _, parameter := range api.Parameters {
-		currentLine := TableLine{Content: make(map[string]string)}
-		currentLine.Set("Type", parameter.In)
-		currentLine.Set("Name", parameter.Name)
-		currentLine.Set("Description", parameter.Description)
-		currentLine.Set("Schema", parameter.Type)
-		pTableLines = append(pTableLines, currentLine)
+	if len(api.Parameters) > 0 {
+		parameterHeader := analyzer.generator.GetHeader("Parameters", H4)
+		pTableLines := make([]TableLine, 0, len(api.Parameters))
+		for _, parameter := range api.Parameters {
+			currentLine := TableLine{Content: make(map[string]string)}
+			currentLine.Set("Type", parameter.In)
+			currentLine.Set("Name", parameter.Name)
+			currentLine.Set("Description", parameter.Description)
+			currentLine.Set("Schema", parameter.Type)
+			pTableLines = append(pTableLines, currentLine)
+		}
+		parameterTable := analyzer.generator.GetTable(parameterTableHeader, pTableLines)
+		apiContent += fmt.Sprintf("%s\n%s\n", parameterHeader, parameterTable)
 	}
-	parameterTable := analyzer.generator.GetTable(parameterTableHeader, pTableLines)
-	apiContent += fmt.Sprintf("%s\n%s\n", parameterHeader, parameterTable)
 
-	responseHeader := analyzer.generator.GetHeader("Responses", H4)
-	rTableLines := make([]TableLine, len(api.Response))
-	for key, value := range api.Response {
-		currentLine := TableLine{Content: make(map[string]string)}
-		currentLine.Set("HTTP Code", key)
-		currentLine.Set("Description", value)
-		rTableLines = append(rTableLines, currentLine)
+	if len(api.Response) > 0 {
+		responseHeader := analyzer.generator.GetHeader("Responses", H4)
+		rTableLines := make([]TableLine, 0, len(api.Response))
+		for key, value := range api.Response {
+			currentLine := TableLine{Content: make(map[string]string)}
+			currentLine.Set("HTTP Code", key)
+			currentLine.Set("Description", value)
+			rTableLines = append(rTableLines, currentLine)
+		}
+		responseTable := analyzer.generator.GetTable(responseTableHeader, rTableLines)
+		apiContent += fmt.Sprintf("%s\n%s\n", responseHeader, responseTable)
 	}
-	responseTable := analyzer.generator.GetTable(responseTableHeader, rTableLines)
-	apiContent += fmt.Sprintf("%s\n%s\n", responseHeader, responseTable)
 
 	TagHeader := analyzer.generator.GetHeader("Tags", H4)
 	apiContent += fmt.Sprintf("%s\n", TagHeader)
@@ -180,7 +194,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
 
 // extract APIs from a given method formatted in Json
 func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]interface{}) []Api {
-	apis := make([]Api, len(methods))
+	apis := make([]Api, 0, len(methods))
 
 	for methodName, value := range methods {
 		currentApi := Api{}
