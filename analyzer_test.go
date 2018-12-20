@@ -79,7 +79,7 @@ func TestSwaggerAnalyzer_FormatAPI(t *testing.T) {
 			for index, api := range apis {
 				t.Log(fmt.Sprintf("API #%d\n", index))
 				{
-					fmt.Println(analyzer.FormatAPI(api))
+					fmt.Println(analyzer.FormatAPI(index, api))
 				}
 			}
 		}

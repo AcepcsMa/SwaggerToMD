@@ -43,9 +43,10 @@ func (line *TableLine) Set(key string, value string) {
 }
 
 // generate a header in markdown
-func (generator *MdGenerator) GetHeader(content string, level HeaderLevel) string {
+func (generator *MdGenerator) GetHeader(content string, level HeaderLevel, indentLevel IndentLevel) string {
+	indent := strings.Repeat(" ", int(indentLevel) * 4)
 	sharps := strings.Repeat("#", int(level))
-	headerContent := fmt.Sprintf("%s %s", sharps, content)
+	headerContent := fmt.Sprintf(indent + "%s %s", sharps, content)
 	return headerContent
 }
 
@@ -57,13 +58,15 @@ func (generator *MdGenerator) GetListItem(content string, level IndentLevel) str
 }
 
 // generate a single line of code in markdown
-func (generator *MdGenerator) GetSingleLineCode(content string) string {
-	return fmt.Sprintf("`%s`", content)
+func (generator *MdGenerator) GetSingleLineCode(content string, level IndentLevel) string {
+	indent := strings.Repeat(" ", int(level) * 4)
+	return fmt.Sprintf(indent + "`%s`", content)
 }
 
 // generate multiple lines of code in markdown
-func (generator *MdGenerator) GetMultiLineCode(content string) string {
-	return fmt.Sprintf("```\n%s\n```", content)
+func (generator *MdGenerator) GetMultiLineCode(content string, level IndentLevel) string {
+	indent := strings.Repeat(" ", int(level) * 4)
+	return fmt.Sprintf("%s```\n%s%s\n%s```", indent, indent, content, indent)
 }
 
 func (generator *MdGenerator) GetBoldLine(content string) string {
@@ -87,9 +90,10 @@ func (generator *MdGenerator) getTableLine(header []string, terms []string) Tabl
 	return line
 }
 
-func (generator *MdGenerator) GetTable(header []string, lines []TableLine) string {
-	headerLine := ""
-	headerSepLine := ""
+func (generator *MdGenerator) GetTable(header []string, lines []TableLine, level IndentLevel) string {
+	indent := strings.Repeat(" ", int(level) * 4)
+	headerLine := indent
+	headerSepLine := indent
 	for _, colHeader := range header {
 		headerLine += fmt.Sprintf("|%s", colHeader)
 		headerSepLine += "|---"
@@ -99,7 +103,7 @@ func (generator *MdGenerator) GetTable(header []string, lines []TableLine) strin
 
 	lineContents := ""
 	for _, line := range lines {
-		currentLine := ""
+		currentLine := indent
 		for _, colHeader := range header {
 			currentLine += fmt.Sprintf("|%s", line.Get(colHeader))
 		}
