@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -146,7 +147,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
 	parameterHeader := analyzer.generator.GetHeader("Parameters", H4)
 	pTableLines := make([]TableLine, len(api.Parameters))
 	for _, parameter := range api.Parameters {
-		currentLine := TableLine{}
+		currentLine := TableLine{Content: make(map[string]string)}
 		currentLine.Set("Type", parameter.In)
 		currentLine.Set("Name", parameter.Name)
 		currentLine.Set("Description", parameter.Description)
@@ -159,7 +160,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
 	responseHeader := analyzer.generator.GetHeader("Responses", H4)
 	rTableLines := make([]TableLine, len(api.Response))
 	for key, value := range api.Response {
-		currentLine := TableLine{}
+		currentLine := TableLine{Content: make(map[string]string)}
 		currentLine.Set("HTTP Code", key)
 		currentLine.Set("Description", value)
 		rTableLines = append(rTableLines, currentLine)
@@ -179,7 +180,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(api Api) string {
 
 // extract APIs from a given method formatted in Json
 func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]interface{}) []Api {
-	apis := make([]Api, 4)
+	apis := make([]Api, len(methods))
 
 	for methodName, value := range methods {
 		currentApi := Api{}
@@ -229,6 +230,9 @@ func NewSwaggerAnalyzer(lang LanguageType) *SwaggerAnalyzer {
 	analyzer := &SwaggerAnalyzer{}
 	analyzer.content = make(map[string]string)
 	analyzer.generator = NewMdGenerator()
-	analyzer.SetLang(lang)
+	err := analyzer.SetLang(lang)
+	if err != nil {
+		log.Fatal("language setting error, only support zh or en now")
+	}
 	return analyzer
 }

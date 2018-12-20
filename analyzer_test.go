@@ -55,3 +55,31 @@ func TestSwaggerAnalyzer_ExtractAPIs(t *testing.T) {
 		}
 	}
 }
+
+// test FormatAPI in SwaggerAnalyzer
+func TestSwaggerAnalyzer_FormatAPI(t *testing.T) {
+	t.Log("Test swagger analyzer - FormatAPI")
+	{
+		model := Model{}
+		t.Log("Generate a swagger model")
+		{
+			fin, err := os.Open("test.json")
+			defer fin.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			json.NewDecoder(fin).Decode(&model)
+		}
+		analyzer := NewSwaggerAnalyzer(ENGLISH)
+		paths := model.Paths
+		for apiPath, methods := range paths {
+			apis := analyzer.ExtractAPIs(apiPath, methods.(map[string]interface{}))
+			for index, api := range apis {
+				t.Log(fmt.Sprintf("API #%d\n", index))
+				{
+					fmt.Println(analyzer.FormatAPI(api))
+				}
+			}
+		}
+	}
+}
