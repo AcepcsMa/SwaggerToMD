@@ -9,13 +9,8 @@ type Model struct {
 	Info struct {
 		Title string `json:"title"`
 		Description string `json:"description"`
-		Contact struct {
-			Email string `json:"email"`
-		} `json:"contact"`
-		License struct {
-			Name string `json:"name"`
-			Url string `json:"url"`
-		} `json:"license"`
+		Contact map[string]string `json:"contact"`
+		License map[string]string `json:"license"`
 		Version string `json:"version"`
 	} `json:"info"`
 

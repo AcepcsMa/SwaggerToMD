@@ -74,7 +74,33 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 }
 
 func (analyzer *SwaggerAnalyzer) FormatInfo(swaggerModel *Model) string {
-	return ""
+	description := analyzer.generator.GetBoldLine(swaggerModel.Info.Description)
+	infoContent := fmt.Sprintf("%s\n", description)
+
+	contactHeader := analyzer.generator.GetHeader(analyzer.terms["contact"] + "\n", H3, INDENT_0)
+	infoContent += contactHeader
+	for key, value := range swaggerModel.Info.Contact {
+		currentLine := fmt.Sprintf("%s : %s\n", key, value)
+		currentListItem := analyzer.generator.GetListItem(currentLine, INDENT_0)
+		infoContent += currentListItem
+	}
+	infoContent += "\n"
+
+	licenseHeader := analyzer.generator.GetHeader(analyzer.terms["license"] + "\n", H3, INDENT_0)
+	infoContent += licenseHeader
+	for key, value := range swaggerModel.Info.License {
+		currentLine := fmt.Sprintf("%s : %s\n", key, value)
+		currentListItem := analyzer.generator.GetListItem(currentLine, INDENT_0)
+		infoContent += currentListItem
+	}
+	infoContent += "\n"
+
+	versionHeader := analyzer.generator.GetHeader(analyzer.terms["version"] + "\n", H3, INDENT_0)
+	version := fmt.Sprintf("%s\n", swaggerModel.Info.Version)
+	infoContent += versionHeader
+	infoContent += version
+
+	return infoContent
 }
 
 func (analyzer *SwaggerAnalyzer) FormatServers(swaggerModel *Model) string {

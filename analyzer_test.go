@@ -116,3 +116,23 @@ func TestSwaggerAnalyzer_Analyze(t *testing.T) {
 		}
 	}
 }
+
+// test FormatInfo in SwaggerAnalyzer
+func TestSwaggerAnalyzer_FormatInfo(t *testing.T) {
+	t.Log("Test SwaggerAnalyzer for OAS3.0 - FormatInfo")
+	{
+		model := Model{}
+		t.Log("Generate a swagger model")
+		{
+			fin, err := os.Open("test.json")
+			defer fin.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			json.NewDecoder(fin).Decode(&model)
+		}
+		analyzer := NewSwaggerAnalyzer(ENGLISH)
+		result := analyzer.FormatInfo(&model)
+		fmt.Println(result)
+	}
+}
