@@ -73,6 +73,7 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 	return fmt.Sprintf("%s\n%s\n%s", title, overviewContent, pathsContent), nil
 }
 
+// format info section in swagger json doc
 func (analyzer *SwaggerAnalyzer) FormatInfo(swaggerModel *Model) string {
 	description := analyzer.generator.GetBoldLine(swaggerModel.Info.Description)
 	infoContent := fmt.Sprintf("%s\n", description)
@@ -103,8 +104,22 @@ func (analyzer *SwaggerAnalyzer) FormatInfo(swaggerModel *Model) string {
 	return infoContent
 }
 
+// format servers section in swagger json doc
 func (analyzer *SwaggerAnalyzer) FormatServers(swaggerModel *Model) string {
-	return ""
+	serversContent := analyzer.generator.GetHeader(analyzer.terms["servers"], H3, INDENT_0)
+	serversContent += "\n"
+
+	for index, server := range swaggerModel.Servers {
+		currentServerHeader := analyzer.generator.GetListItem(fmt.Sprintf("Server-%d\n", index), INDENT_0)
+		currentServerUrl := analyzer.generator.GetListItem(fmt.Sprintf("url : %s\n", server.Url), INDENT_1)
+		currentServerDesc := analyzer.generator.GetListItem(fmt.Sprintf("description : %s\n",
+			server.Description), INDENT_1)
+		serversContent += currentServerHeader
+		serversContent += currentServerUrl
+		serversContent += currentServerDesc
+	}
+
+	return serversContent
 }
 
 func (analyzer *SwaggerAnalyzer) FormatTags(swaggerModel *Model) string {
