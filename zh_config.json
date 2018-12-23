@@ -1,0 +1,14 @@
+{
+	"overview": "概述",
+	"version_info": "版本信息",
+	"contact": "联系方式",
+	"license": "License",
+	"servers": "服务器信息",
+	"uri_scheme": "URI信息",
+	"tags": "标签组",
+	"consumes": "API入参类型",
+	"produces": "API出参类型",
+	"paths": "API路由信息",
+	"parameters": "参数列表",
+	"responses": "返回值"
+}

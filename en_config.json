@@ -1,0 +1,14 @@
+{
+	"overview": "Overview",
+	"version": "Version",
+	"contact": "Contacts",
+	"license": "License",
+	"servers": "Servers",
+	"uri_scheme": "URI scheme",
+	"tags": "Tags",
+	"consumes": "Consumes",
+	"produces": "Produces",
+	"paths": "Paths",
+	"parameters": "Parameters",
+	"responses": "Responses"
+}
