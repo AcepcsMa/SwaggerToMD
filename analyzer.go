@@ -122,8 +122,20 @@ func (analyzer *SwaggerAnalyzer) FormatServers(swaggerModel *Model) string {
 	return serversContent
 }
 
+// format tags section in swagger json doc
 func (analyzer *SwaggerAnalyzer) FormatTags(swaggerModel *Model) string {
-	return ""
+	tagsContent := analyzer.generator.GetHeader(analyzer.terms["tags"], H3, INDENT_0)
+	tagsContent += "\n"
+
+	for _, tag := range swaggerModel.Tags {
+		boldTagName := analyzer.generator.GetBoldLine(tag.Name)
+		tagName := analyzer.generator.GetItalicLine(boldTagName)
+		tagDesc := tag.Description
+		currentListItem := analyzer.generator.GetListItem(fmt.Sprintf("%s : %s\n", tagName, tagDesc), INDENT_0)
+		tagsContent += currentListItem
+	}
+
+	return tagsContent
 }
 
 // analyze the overview part

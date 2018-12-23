@@ -156,3 +156,23 @@ func TestSwaggerAnalyzer_FormatServers(t *testing.T) {
 		fmt.Println(result)
 	}
 }
+
+// test FormatTags in SwaggerAnalyzer
+func TestSwaggerAnalyzer_FormatTags(t *testing.T) {
+	t.Log("Test SwaggerAnalyzer for OAS3.0 - FormatTags")
+	{
+		model := Model{}
+		t.Log("Generate a swagger model")
+		{
+			fin, err := os.Open("test.json")
+			defer fin.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			json.NewDecoder(fin).Decode(&model)
+		}
+		analyzer := NewSwaggerAnalyzer(ENGLISH)
+		result := analyzer.FormatTags(&model)
+		fmt.Println(result)
+	}
+}
