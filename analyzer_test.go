@@ -215,3 +215,23 @@ func TestSwaggerAnalyzer_FormatComponents(t *testing.T) {
 		fmt.Println(formattedComponents)
 	}
 }
+
+// test AnalyzeComponents in SwaggerAnalyzer
+func TestSwaggerAnalyzer_AnalyzeComponents(t *testing.T) {
+	t.Log("Test SwaggerAnalyzer for OAS3.0 - AnalyzeComponents")
+	{
+		model := Model{}
+		t.Log("Generate a swagger model")
+		{
+			fin, err := os.Open("test.json")
+			defer fin.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			json.NewDecoder(fin).Decode(&model)
+		}
+		analyzer := NewSwaggerAnalyzer(ENGLISH)
+		componentsContent := analyzer.AnalyzeComponents(&model)
+		fmt.Println(componentsContent)
+	}
+}

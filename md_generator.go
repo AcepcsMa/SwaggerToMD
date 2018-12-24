@@ -66,7 +66,12 @@ func (generator *MdGenerator) GetSingleLineCode(content string, level IndentLeve
 // generate multiple lines of code in markdown
 func (generator *MdGenerator) GetMultiLineCode(content string, level IndentLevel) string {
 	indent := strings.Repeat(" ", int(level) * 4)
-	return fmt.Sprintf("%s```\n%s%s\n%s```", indent, indent, content, indent)
+	lines := strings.Split(content, "\n")
+	finalCode := ""
+	for _, line := range lines {
+		finalCode += fmt.Sprintf("%s%s\n", indent, line)
+	}
+	return fmt.Sprintf("%s```\n%s\n%s```", indent, finalCode, indent)
 }
 
 func (generator *MdGenerator) GetBoldLine(content string) string {

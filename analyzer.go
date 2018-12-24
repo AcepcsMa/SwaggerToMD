@@ -153,6 +153,15 @@ func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel *Model) string {
 	return overviewContent
 }
 
+func (analyzer *SwaggerAnalyzer) AnalyzeComponents(swaggerModel *Model) string {
+	components := analyzer.ExtractComponents(swaggerModel)
+	componentsContent := fmt.Sprintf("%s\n",
+		analyzer.generator.GetHeader(analyzer.terms["components"], H2, INDENT_0))
+
+	componentsContent += fmt.Sprintf("%s\n", analyzer.FormatComponents(components))
+	return componentsContent
+}
+
 // analyze the paths part
 func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error) {
 	pathsContent := make([]string, 0)
@@ -225,8 +234,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 
 // format a slice of components
 func (analyzer *SwaggerAnalyzer) FormatComponents(components []Component) string {
-	componentsContent := fmt.Sprintf("%s\n",
-		analyzer.generator.GetHeader(analyzer.terms["components"], H2, INDENT_0))
+	componentsContent := ""
 	for _, component := range components {
 		componentsContent += fmt.Sprintf("%s\n", analyzer.FormatComponent(&component))
 	}
@@ -251,7 +259,10 @@ func (analyzer *SwaggerAnalyzer) FormatComponent(component *Component) string {
 		currentLine.Set(EXAMPLE, property.Example)
 		tableLines = append(tableLines, currentLine)
 	}
-	componentContent += analyzer.generator.GetTable(componentTableHeader, tableLines, INDENT_2)
+	componentContent += fmt.Sprintf("%s\n",
+		analyzer.generator.GetTable(componentTableHeader, tableLines, INDENT_2))
+	componentContent += fmt.Sprintf("%s\n",
+		analyzer.generator.GetMultiLineCode(component.Code, INDENT_2))
 	return componentContent
 }
 
@@ -287,6 +298,11 @@ func (analyzer *SwaggerAnalyzer) ExtractComponents(swaggerModel *Model) []Compon
 			currentProperty.Type = analyzer.generator.GetItalicLine(currentProperty.Type)
 			currentProperties = append(currentProperties, currentProperty)
 		}
+		code, err := json.MarshalIndent(component, "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		currentComponent.Code = string(code)
 		currentComponent.Properties = currentProperties
 		components = append(components, currentComponent)
 	}

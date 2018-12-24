@@ -18,9 +18,10 @@ type Component struct {
 	Name string
 	Type string
 	Properties []Property
+	Code string
 }
 
 func (c Component) String() string {
-	return fmt.Sprintf("{\n\tComponentName: %s\n\tComponentType: %s\n\tProperties: %v\n}",
-		c.Name, c.Type, c.Properties)
+	return fmt.Sprintf("{\n\tComponentName: %s\n\tComponentType: %s\n\tProperties: %v\n\tCode: %v\n}",
+		c.Name, c.Type, c.Properties, c.Code)
 }
