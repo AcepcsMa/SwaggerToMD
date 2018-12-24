@@ -61,10 +61,7 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 	model := Model{}
 	json.Unmarshal([]byte(jsonInput), &model)
 	title := analyzer.generator.GetHeader(model.Info.Title, H1, INDENT_0)
-	overviewContent, overviewErr := analyzer.AnalyzeOverview(model)
-	if overviewErr != nil {
-		return "", overviewErr
-	}
+	overviewContent := analyzer.AnalyzeOverview(&model)
 	pathsContent, pathsErr := analyzer.AnalyzePaths(model)
 	if pathsErr != nil {
 		return "", pathsErr
@@ -97,7 +94,7 @@ func (analyzer *SwaggerAnalyzer) FormatInfo(swaggerModel *Model) string {
 	infoContent += "\n"
 
 	versionHeader := analyzer.generator.GetHeader(analyzer.terms["version"] + "\n", H3, INDENT_0)
-	version := fmt.Sprintf("%s\n", swaggerModel.Info.Version)
+	version := fmt.Sprintf("%s\n\n", swaggerModel.Info.Version)
 	infoContent += versionHeader
 	infoContent += version
 
@@ -118,6 +115,7 @@ func (analyzer *SwaggerAnalyzer) FormatServers(swaggerModel *Model) string {
 		serversContent += currentServerUrl
 		serversContent += currentServerDesc
 	}
+	serversContent += "\n"
 
 	return serversContent
 }
@@ -139,60 +137,12 @@ func (analyzer *SwaggerAnalyzer) FormatTags(swaggerModel *Model) string {
 }
 
 // analyze the overview part
-func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel Model) (string, error) {
-
-	overviewContent := make([]string, 0)
-
-	overviewHeader := analyzer.generator.GetHeader(analyzer.terms["overview"], H2, INDENT_0)
-	overview := swaggerModel.Info.Description + "\n"
-	overviewContent = append(overviewContent, overviewHeader, overview)
-
-	versionHeader := analyzer.generator.GetHeader(analyzer.terms["version_info"], H3,INDENT_0)
-	version := fmt.Sprintf("Version: %s\n", swaggerModel.Info.Version)
-	overviewContent = append(overviewContent, versionHeader, version)
-
-	//uriHeader := analyzer.generator.GetHeader(analyzer.terms["uri_scheme"], H3, INDENT_0)
-	//basePath := fmt.Sprintf("BasePath: %s\n", swaggerModel.BasePath)
-	//overviewContent = append(overviewContent, uriHeader, basePath)
-
-	tags := make([]string, len(swaggerModel.Tags))
-	tagsHeader := analyzer.generator.GetHeader(analyzer.terms["tags"], H3, INDENT_0)
-	for index, tag := range swaggerModel.Tags {
-		format := "%s : %s"
-		if index == len(swaggerModel.Tags) - 1 {
-			format += "\n"
-		}
-		listItemContent := fmt.Sprintf(format, tag.Name, tag.Description)
-		tags = append(tags, analyzer.generator.GetListItem(listItemContent, INDENT_0))
-	}
-	overviewContent = append(overviewContent, tagsHeader)
-	overviewContent = append(overviewContent, tags...)
-
-	//consumesHeader := analyzer.generator.GetHeader(analyzer.terms["consumes"], H3, INDENT_0)
-	//consumes := make([]string, len(swaggerModel.Consumes))
-	//for index, consume := range swaggerModel.Consumes {
-	//	codeConsume := analyzer.generator.GetSingleLineCode(consume, INDENT_0)
-	//	if index == len(swaggerModel.Consumes) - 1 {
-	//		codeConsume += "\n"
-	//	}
-	//	consumes = append(consumes, analyzer.generator.GetListItem(codeConsume, INDENT_0))
-	//}
-	//overviewContent = append(overviewContent, consumesHeader)
-	//overviewContent = append(overviewContent, consumes...)
-
-	//producesHeader := analyzer.generator.GetHeader(analyzer.terms["produces"], H3, INDENT_0)
-	//produces := make([]string, len(swaggerModel.Produces))
-	//for _, produce := range swaggerModel.Produces {
-	//	codeProduce := analyzer.generator.GetSingleLineCode(produce, INDENT_0)
-	//	produces = append(produces, analyzer.generator.GetListItem(codeProduce, INDENT_0))
-	//}
-	//overviewContent = append(overviewContent, producesHeader)
-	//overviewContent = append(overviewContent, produces...)
-
-	finalOverviewContent := analyzer.compact(overviewContent)
-
-	analyzer.content["overview"] = finalOverviewContent
-	return analyzer.content["overview"], nil
+func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel *Model) string {
+	overviewContent := ""
+	overviewContent += analyzer.FormatInfo(swaggerModel)
+	overviewContent += analyzer.FormatServers(swaggerModel)
+	overviewContent += analyzer.FormatTags(swaggerModel)
+	return overviewContent
 }
 
 // analyze the paths part

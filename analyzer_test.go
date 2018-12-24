@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"testing"
 )
@@ -25,10 +24,7 @@ func TestSwaggerAnalyzer_AnalyzeOverview(t *testing.T) {
 			json.NewDecoder(fin).Decode(&model)
 		}
 		analyzer := NewSwaggerAnalyzer(ENGLISH)
-		overviewContent, err := analyzer.AnalyzeOverview(model)
-		if err != nil {
-			log.Fatal(err)
-		}
+		overviewContent := analyzer.AnalyzeOverview(&model)
 		fmt.Println(overviewContent)
 	}
 }
