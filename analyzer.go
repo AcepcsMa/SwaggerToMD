@@ -19,10 +19,17 @@ const (
 	SCHEMA = "Schema"
 	NAME = "Name"
 	HTTP_CODE = "HTTP Code"
+	PROPERTY_NAME = "Property Name"
+	PROPERTY_TYPE = "Property Type"
+	REQUIRED = "Required"
+	EXAMPLE = "Example"
+	TRUE = "True"
+	FALSE = "False"
 )
 
 var parameterTableHeader = []string{"Type", "Name", "Description", "Schema"}
 var responseTableHeader = []string{"HTTP Code", "Description", "Schema"}
+var componentTableHeader = []string{"Property Name","Property Type", "Required", "Example"}
 
 type Analyzer interface {
 	Analyze(string) (string, error)
@@ -138,7 +145,8 @@ func (analyzer *SwaggerAnalyzer) FormatTags(swaggerModel *Model) string {
 
 // analyze the overview part
 func (analyzer *SwaggerAnalyzer) AnalyzeOverview(swaggerModel *Model) string {
-	overviewContent := ""
+	overviewContent := analyzer.generator.GetHeader(analyzer.terms["overview"], H2, INDENT_0)
+	overviewContent += "\n"
 	overviewContent += analyzer.FormatInfo(swaggerModel)
 	overviewContent += analyzer.FormatServers(swaggerModel)
 	overviewContent += analyzer.FormatTags(swaggerModel)
@@ -215,6 +223,38 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 	return apiContent
 }
 
+// format a slice of components
+func (analyzer *SwaggerAnalyzer) FormatComponents(components []Component) string {
+	componentsContent := fmt.Sprintf("%s\n",
+		analyzer.generator.GetHeader(analyzer.terms["components"], H2, INDENT_0))
+	for _, component := range components {
+		componentsContent += fmt.Sprintf("%s\n", analyzer.FormatComponent(&component))
+	}
+	return componentsContent
+}
+
+// format a single component
+func (analyzer *SwaggerAnalyzer) FormatComponent(component *Component) string {
+	componentContent := fmt.Sprintf("%s\n", analyzer.generator.GetListItem(component.Name, INDENT_0))
+	typeInCode := analyzer.generator.GetSingleLineCode(component.Type, INDENT_0)
+	componentContent += fmt.Sprintf("%s\n\n", analyzer.generator.GetListItem("type : " + typeInCode, INDENT_1))
+	tableLines := make([]TableLine, 0, len(component.Properties))
+	for _, property := range component.Properties {
+		currentLine := TableLine{Content: make(map[string]string)}
+		currentLine.Set(PROPERTY_NAME, property.Name)
+		currentLine.Set(PROPERTY_TYPE, property.Type)
+		if property.Required {
+			currentLine.Set(REQUIRED, TRUE)
+		} else {
+			currentLine.Set(REQUIRED, FALSE)
+		}
+		currentLine.Set(EXAMPLE, property.Example)
+		tableLines = append(tableLines, currentLine)
+	}
+	componentContent += analyzer.generator.GetTable(componentTableHeader, tableLines, INDENT_2)
+	return componentContent
+}
+
 // extract components
 func (analyzer *SwaggerAnalyzer) ExtractComponents(swaggerModel *Model) []Component {
 	components := make([]Component, 0, len(swaggerModel.Components.Schemas))
@@ -240,6 +280,11 @@ func (analyzer *SwaggerAnalyzer) ExtractComponents(swaggerModel *Model) []Compon
 			if isRequired, ok := required[propertyName]; ok {
 				currentProperty.Required = isRequired
 			}
+			if currentProperty.Type == "array" {
+				arrayType := property.(map[string]interface{})["items"].(map[string]interface{})["type"].(string)
+				currentProperty.Type = fmt.Sprintf("array\\<%s\\>", arrayType)
+			}
+			currentProperty.Type = analyzer.generator.GetItalicLine(currentProperty.Type)
 			currentProperties = append(currentProperties, currentProperty)
 		}
 		currentComponent.Properties = currentProperties

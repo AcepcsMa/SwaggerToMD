@@ -10,5 +10,6 @@
 	"produces": "API出参类型",
 	"paths": "API路由信息",
 	"parameters": "参数列表",
-	"responses": "返回值"
+	"responses": "返回值",
+	"components": "资源"
 }

@@ -10,5 +10,6 @@
 	"produces": "Produces",
 	"paths": "Paths",
 	"parameters": "Parameters",
-	"responses": "Responses"
+	"responses": "Responses",
+	"components": "Components"
 }
