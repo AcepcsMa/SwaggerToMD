@@ -215,6 +215,39 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 	return apiContent
 }
 
+// extract components
+func (analyzer *SwaggerAnalyzer) ExtractComponents(swaggerModel *Model) []Component {
+	components := make([]Component, 0, len(swaggerModel.Components.Schemas))
+
+	for componentName, component := range swaggerModel.Components.Schemas {
+		currentComponent := Component{Name: componentName, Type: component.(map[string]interface{})["type"].(string)}
+		required := make(map[string]bool)
+		requiredFields := component.(map[string]interface{})["required"].([]interface{})
+		for _, requiredField := range requiredFields {
+			required[requiredField.(string)] = true
+		}
+
+		properties := component.(map[string]interface{})["properties"].(map[string]interface{})
+		currentProperties := make([]Property, 0, len(properties))
+		for propertyName, property := range properties {
+			currentProperty := Property{Name: propertyName,
+			Type: property.(map[string]interface{})["type"].(string)}
+			if example, ok := property.(map[string]interface{})["example"]; ok {
+				currentProperty.Example = fmt.Sprintf("%v", example)
+			} else {
+				currentProperty.Example = "/"
+			}
+			if isRequired, ok := required[propertyName]; ok {
+				currentProperty.Required = isRequired
+			}
+			currentProperties = append(currentProperties, currentProperty)
+		}
+		currentComponent.Properties = currentProperties
+		components = append(components, currentComponent)
+	}
+	return components
+}
+
 // extract APIs from a given method formatted in Json
 func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]interface{}) []Api {
 	apis := make([]Api, 0, len(methods))

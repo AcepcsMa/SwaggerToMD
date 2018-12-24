@@ -172,3 +172,25 @@ func TestSwaggerAnalyzer_FormatTags(t *testing.T) {
 		fmt.Println(result)
 	}
 }
+
+// test ExtractComponents in SwaggerAnalyzer
+func TestSwaggerAnalyzer_ExtractComponents(t *testing.T) {
+	t.Log("Test SwaggerAnalyzer for OAS3.0 - ExtractComponents")
+	{
+		model := Model{}
+		t.Log("Generate a swagger model")
+		{
+			fin, err := os.Open("test.json")
+			defer fin.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			json.NewDecoder(fin).Decode(&model)
+		}
+		analyzer := NewSwaggerAnalyzer(ENGLISH)
+		components := analyzer.ExtractComponents(&model)
+		for _, component := range components {
+			fmt.Println(component)
+		}
+	}
+}
