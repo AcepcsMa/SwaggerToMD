@@ -211,13 +211,13 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 		apiContent += fmt.Sprintf("%s\n%s\n", parameterHeader, parameterTable)
 	}
 
-	if len(api.Response) > 0 {
+	if len(api.Responses) > 0 {
 		responseHeader := analyzer.generator.GetHeader(analyzer.terms["responses"], H4, INDENT_1)
-		rTableLines := make([]TableLine, 0, len(api.Response))
-		for key, value := range api.Response {
+		rTableLines := make([]TableLine, 0, len(api.Responses))
+		for _, response := range api.Responses {
 			currentLine := TableLine{Content: make(map[string]string)}
-			currentLine.Set(HTTP_CODE, key)
-			currentLine.Set(DESCRIPTION, value)
+			currentLine.Set(HTTP_CODE, response.StatusCode)
+			currentLine.Set(DESCRIPTION, response.Description)
 			rTableLines = append(rTableLines, currentLine)
 		}
 		responseTable := analyzer.generator.GetTable(responseTableHeader, rTableLines, INDENT_1)
@@ -320,23 +320,34 @@ func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]
 
 	for methodName, value := range methods {
 		currentApi := Api{}
-		currentApi.Response = make(map[string]string)
+		responses := value.(map[string]interface{})["responses"].(map[string]interface{})
+		currentApi.Responses = make([]Response, 0, len(responses))
 		currentApi.Path = apiPath
 		currentApi.Method = methodName
-		responses := value.(map[string]interface{})["responses"].(map[string]interface{})
+		responseJson, err := json.MarshalIndent(responses, "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		currentApi.ResponseInJson = string(responseJson)
 		for statusCode, returnInfo := range responses {
-			currentApi.Response[statusCode] = returnInfo.(map[string]interface{})["description"].(string)
+			currentResponse := Response{StatusCode: statusCode,
+			Description: returnInfo.(map[string]interface{})["description"].(string)}
+			currentApi.Responses = append(currentApi.Responses, currentResponse)
 		}
 		currentApi.OperationId = value.(map[string]interface{})["operationId"].(string)
 
 		if parameters, ok := value.(map[string]interface{})["parameters"].([]interface{}); ok {
 			for _, parameter := range parameters {
-
 				currentParameter := Parameter{
 					Description: parameter.(map[string]interface{})["description"].(string),
 					Name: parameter.(map[string]interface{})["name"].(string),
-					Type: parameter.(map[string]interface{})["type"].(string),
+					Type: parameter.(map[string]interface{})["schema"].(map[string]interface{})["type"].(string),
 					In: parameter.(map[string]interface{})["in"].(string)}
+				if example, ok := parameter.(map[string]interface{})["schema"].(map[string]interface{})["example"]; ok {
+					currentParameter.Example = example.(string)
+				} else {
+					currentParameter.Example = ""
+				}
 				currentApi.Parameters = append(currentApi.Parameters, currentParameter)
 			}
 		}

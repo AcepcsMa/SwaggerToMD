@@ -8,25 +8,33 @@ type Parameter struct {
 	Name string
 	Type string
 	In string
+	Example string
+}
+
+// Responses struct
+type Response struct {
+	StatusCode string
+	Description string
 }
 
 // API struct, demonstrating the essential info of an API
 type Api struct {
-	Path string
-	Method string
-	Response map[string]string
+	Path        string
+	Method      string
+	Responses   []Response
+	ResponseInJson string
 	OperationId string
-	Parameters []Parameter
-	Tags []string
+	Parameters  []Parameter
+	Tags        []string
 }
 
 func (p Parameter) String() string {
-	return fmt.Sprintf("{\n\tDescription: %s\n\tName: %s\n\tType: %s\n\tIn: %s\n}",
-		p.Description, p.Name, p.Type, p.In)
+	return fmt.Sprintf("{\n\tDescription: %s\n\tName: %s\n\tType: %s\n\tIn: %s\n\tExample: %s\n}",
+		p.Description, p.Name, p.Type, p.In, p.Example)
 }
 
 func (api Api) String() string {
 	return fmt.Sprintf("{\n\tPath: %s\n\tMethod: %s\n\tResponses: %v\n\t" +
-		"OperationId: %s\n\tParameters: %v\n\tTags: %v\n}",
-		api.Path, api.Method, api.Response, api.OperationId, api.Parameters, api.Tags)
+		"OperationId: %s\n\tParameters: %v\n\tTags: %v\n\tResponseInJson: %s\n}",
+		api.Path, api.Method, api.Responses, api.OperationId, api.Parameters, api.Tags, api.ResponseInJson)
 }
