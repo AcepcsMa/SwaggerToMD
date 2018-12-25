@@ -69,12 +69,14 @@ func (analyzer *SwaggerAnalyzer) Analyze(jsonInput string) (string, error) {
 	json.Unmarshal([]byte(jsonInput), &model)
 	title := analyzer.generator.GetHeader(model.Info.Title, H1, INDENT_0)
 	overviewContent := analyzer.AnalyzeOverview(&model)
+	componentsContent := analyzer.AnalyzeComponents(&model)
 	pathsContent, pathsErr := analyzer.AnalyzePaths(model)
 	if pathsErr != nil {
 		return "", pathsErr
 	}
 
-	return fmt.Sprintf("%s\n%s\n%s", title, overviewContent, pathsContent), nil
+	return fmt.Sprintf("%s\n%s\n%s\n%s",
+		title, overviewContent, componentsContent, pathsContent), nil
 }
 
 // format info section in swagger json doc
@@ -245,7 +247,8 @@ func (analyzer *SwaggerAnalyzer) FormatComponents(components []Component) string
 func (analyzer *SwaggerAnalyzer) FormatComponent(component *Component) string {
 	componentContent := fmt.Sprintf("%s\n", analyzer.generator.GetListItem(component.Name, INDENT_0))
 	typeInCode := analyzer.generator.GetSingleLineCode(component.Type, INDENT_0)
-	componentContent += fmt.Sprintf("%s\n\n", analyzer.generator.GetListItem("type : " + typeInCode, INDENT_1))
+	componentContent += fmt.Sprintf("%s\n", analyzer.generator.GetListItem("type : " + typeInCode, INDENT_1))
+	componentContent += fmt.Sprintf("%s\n\n", analyzer.generator.GetListItem("properties", INDENT_1))
 	tableLines := make([]TableLine, 0, len(component.Properties))
 	for _, property := range component.Properties {
 		currentLine := TableLine{Content: make(map[string]string)}
@@ -261,6 +264,8 @@ func (analyzer *SwaggerAnalyzer) FormatComponent(component *Component) string {
 	}
 	componentContent += fmt.Sprintf("%s\n",
 		analyzer.generator.GetTable(componentTableHeader, tableLines, INDENT_2))
+	componentContent += fmt.Sprintf("%s\n\n",
+		analyzer.generator.GetListItem("JSON representation", INDENT_1))
 	componentContent += fmt.Sprintf("%s\n",
 		analyzer.generator.GetMultiLineCode(component.Code, INDENT_2))
 	return componentContent
