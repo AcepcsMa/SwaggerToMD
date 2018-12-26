@@ -186,6 +186,7 @@ func (analyzer *SwaggerAnalyzer) AnalyzePaths(swaggerModel Model) (string, error
 	return finalPathsContent, nil
 }
 
+// format an API
 func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 	apiContent := ""
 	boldDescription := analyzer.generator.GetBoldLine(api.OperationId)
@@ -218,6 +219,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 			currentLine := TableLine{Content: make(map[string]string)}
 			currentLine.Set(HTTP_CODE, response.StatusCode)
 			currentLine.Set(DESCRIPTION, response.Description)
+			// to do
 			rTableLines = append(rTableLines, currentLine)
 		}
 		responseTable := analyzer.generator.GetTable(responseTableHeader, rTableLines, INDENT_1)
@@ -332,6 +334,15 @@ func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]
 		for statusCode, returnInfo := range responses {
 			currentResponse := Response{StatusCode: statusCode,
 			Description: returnInfo.(map[string]interface{})["description"].(string)}
+			if content, ok := returnInfo.(map[string]interface{})["content"]; ok {
+				contentJson := content.(map[string]interface{})
+				for _, value := range contentJson {
+					schema := value.(map[string]interface{})["schema"]
+					currentResponse.Schema = schema.(map[string]interface{})["type"].(string)
+				}
+			} else {
+				currentResponse.Schema = "No schema"
+			}
 			currentApi.Responses = append(currentApi.Responses, currentResponse)
 		}
 		currentApi.OperationId = value.(map[string]interface{})["operationId"].(string)

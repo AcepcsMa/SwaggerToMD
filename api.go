@@ -11,10 +11,21 @@ type Parameter struct {
 	Example string
 }
 
+func (p Parameter) String() string {
+	return fmt.Sprintf("{\n\tDescription: %s\n\tName: %s\n\tType: %s\n\tIn: %s\n\tExample: %s\n}",
+		p.Description, p.Name, p.Type, p.In, p.Example)
+}
+
 // Responses struct
 type Response struct {
 	StatusCode string
 	Description string
+	Schema string
+}
+
+func (r Response) String() string {
+	return fmt.Sprintf("StatusCode: %s, Description: %s, SchemaType: %s",
+		r.StatusCode, r.Description, r.Schema)
 }
 
 // API struct, demonstrating the essential info of an API
@@ -26,11 +37,6 @@ type Api struct {
 	OperationId string
 	Parameters  []Parameter
 	Tags        []string
-}
-
-func (p Parameter) String() string {
-	return fmt.Sprintf("{\n\tDescription: %s\n\tName: %s\n\tType: %s\n\tIn: %s\n\tExample: %s\n}",
-		p.Description, p.Name, p.Type, p.In, p.Example)
 }
 
 func (api Api) String() string {
