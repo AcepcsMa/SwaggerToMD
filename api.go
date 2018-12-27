@@ -34,6 +34,7 @@ type Api struct {
 	Method      string
 	Responses   []Response
 	ResponseInJson string
+	RequestBodyInJson string
 	OperationId string
 	Parameters  []Parameter
 	Tags        []string
@@ -41,6 +42,7 @@ type Api struct {
 
 func (api Api) String() string {
 	return fmt.Sprintf("{\n\tPath: %s\n\tMethod: %s\n\tResponses: %v\n\t" +
-		"OperationId: %s\n\tParameters: %v\n\tTags: %v\n\tResponseInJson: %s\n}",
-		api.Path, api.Method, api.Responses, api.OperationId, api.Parameters, api.Tags, api.ResponseInJson)
+		"OperationId: %s\n\tParameters: %v\n\tTags: %v\n\tResponse: %s\n\tRequestBody: %s\n}",
+		api.Path, api.Method, api.Responses, api.OperationId,
+		api.Parameters, api.Tags, api.ResponseInJson, api.RequestBodyInJson)
 }
