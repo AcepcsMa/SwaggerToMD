@@ -367,6 +367,13 @@ func (analyzer *SwaggerAnalyzer) ExtractAPIs(apiPath string, methods map[string]
 		for _, tag := range tags {
 			currentApi.Tags = append(currentApi.Tags, tag.(string))
 		}
+
+		requestBody := value.(map[string]interface{})["requestBody"]
+		requestBodyInJson, err := json.MarshalIndent(requestBody, "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		currentApi.RequestBodyInJson = string(requestBodyInJson)
 		apis = append(apis, currentApi)
 	}
 	return apis
