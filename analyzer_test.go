@@ -70,13 +70,15 @@ func TestSwaggerAnalyzer_FormatAPI(t *testing.T) {
 		}
 		analyzer := NewSwaggerAnalyzer(ENGLISH)
 		paths := model.Paths
+		index := 1
 		for apiPath, methods := range paths {
 			apis := analyzer.ExtractAPIs(apiPath, methods.(map[string]interface{}))
-			for index, api := range apis {
+			for _, api := range apis {
 				t.Log(fmt.Sprintf("API #%d\n", index))
 				{
 					fmt.Println(analyzer.FormatAPI(index, api))
 				}
+				index++
 			}
 		}
 	}

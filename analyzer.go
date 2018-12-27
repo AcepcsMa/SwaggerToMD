@@ -219,7 +219,7 @@ func (analyzer *SwaggerAnalyzer) FormatAPI(apiIndex int, api Api) string {
 			currentLine := TableLine{Content: make(map[string]string)}
 			currentLine.Set(HTTP_CODE, response.StatusCode)
 			currentLine.Set(DESCRIPTION, response.Description)
-			// to do
+			currentLine.Set(SCHEMA, response.Schema)
 			rTableLines = append(rTableLines, currentLine)
 		}
 		responseTable := analyzer.generator.GetTable(responseTableHeader, rTableLines, INDENT_1)
